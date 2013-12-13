@@ -1,0 +1,6 @@
+function display_size(){
+document.getElementById('display_sizeTshirt').style.display='block';
+//alert('hey');
+
+
+}
