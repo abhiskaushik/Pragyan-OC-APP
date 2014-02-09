@@ -8,6 +8,8 @@ if(!defined('__PRAGYAN_CMS'))
   }
 /**
  * @package pragyan
+ * @author shriram<vshriram93@gmail.com>
+ * @author Abhishek Kaushik
  * @copyright (c) 2008 Pragyan Team
  * @license http://www.gnu.org/licenses/ GNU Public License
  * For more details, see README
@@ -29,183 +31,154 @@ public function getHtml($gotuid, $gotmoduleComponentId, $gotaction) {
   }
 
 public function actionView() {
-
-        global $urlRequestRoot, $moduleFolder, $cmsFolder,$templateFolder,$sourceFolder,$STARTSCRIPTS;
-     // require_once($sourceFolder."/".$moduleFolder."/oc/oc_registration.js");
-$mcId= $this->moduleComponentId;
-   $userId = $this->userId;
-   $email = getUserEmail($userId);
-   $l_uid=strlen($email);
-   $roll_registrant=substr($email,0,$l_uid-9);
-   displayinfo('Welcome'.'&nbsp'.substr($email,0,$l_uid-9));  
-$registerForm .=<<<FORM
-         <form action="./+view" method="post">
-        <h1 align='center' style='color:brown'><u>Registration Form</u></h2>
-       <center>
-        
-         <label for='name' style='font-size:20px;font-weight:bold'>Name:</label>
-	      <input type="Name" name="name_registrant" required autofocus placeholder="Enter Your Name"/ style='width:200px;height:24px;font-size:20px'>
-            <label for='Amount Plan' style='font-size:20px;font-weight:bold'> Amount:</label>
-              <input type='radio'  name='amount_plan' value='700' onclick="document.getElementById('display_sizeTshirt').style.display='block'">700 (Food coupon + Pragyan T.Shirt) 
-       <input type='radio' name='amount_plan' value='500' onclick="document.getElementById('display_sizeTshirt').style.display='none' ">500 (only Food Coupon)
-</br>
-	  <div id='display_sizeTshirt' style='display:none;'> <label for='size' style='font-weight:bold;font-size:20px'>T-shirt Size: </label>
-     <input type='radio' name='size_tshirt' value='large'>Large
-    <input type='radio' name='size_tshirt' value='small'>Small
-    <input type='radio' name='size_tshirt' value='medium'>Medium
-    <input type='radio' name='size_tshirt' value='XL'>XL
-</div> <br>
- <input type='submit' name='submit_reg_form' style='font-size:20px;z-index:2' Value='Register'>
-      </center>
-       </form>
-
-FORM;
-     
-$name=$_POST['name_registrant']; $amount=$_POST['amount_plan'];
-$tsize=$_POST['size_tshirt'];
-if(isset($_POST['submit_reg_form']))
-{  if(isset($_POST['amount_plan'])&&$_POST['amount_plan']=='500')
- $query="INSERT INTO `oc_form_reg` (`page_modulecomponentid`,`name`,`amount`,`user_id`,`Tshirt_size`) VALUES ('$mcId','$name','$amount','$email','$tsize')";
- else if(isset($_POST['amount_plan'])&& $_POST['amount_plan']=='700')
-       if(isset($_POST['size_tshirt']))
- $query="INSERT INTO `oc_form_reg` (`page_modulecomponentid`,`name`,`amount`,`user_id`,`Tshirt_size`) VALUES ('$mcId','$name','$amount','$email','$tsize')";
-  else displayinfo("What the Crap? Choose T.Shirt Size");
- //mysql_query($query);
-//displayinfo($query);
-if(mysql_query($query))
- displayinfo("Your registration is complete.");
-else
- displayerror("There was some error in registration!");
- 
-}
- return $registerForm;
+  global $urlRequestRoot, $moduleFolder, $cmsFolder,$templateFolder,$sourceFolder,$STARTSCRIPTS;
+  require_once($sourceFolder."/".$moduleFolder."/oc/oc_common.php");
+  require_once($sourceFolder."/".$moduleFolder."/oc/oc_form.php");
+  $mcId= $this->moduleComponentId;
+  $userId = $this->userId;
+  if(!handleRegistrationFormSubmit($userId,$mcId)) return;
+  return displayRegistrationForm();
 }
 
 public function actionOcteam() {
-global $urlRequestRoot, $moduleFolder, $cmsFolder,$templateFolder,$sourceFolder,$STARTSCRIPTS;
-  $page_moduleComponentId=$this->moduleComponentId;
-require_once($sourceFolder."/".$moduleFolder."/oc/oc_common.php");
-   /*$userId = $this->userId;
-   $email = getUserEmail($userId);
-   $l_uid=strlen($email);
-   displayinfo(substr($email,0,$l_uid-9));
-*/
-
-$ocDuty.=<<<FORM
-             <center>
-           <div id='ocRollScan' style='height:250px;width:400px;background:lightblue'>
-           <h1><u>Pragyan-14 Tshirt & Coupons Distribution by OC</u></h3>
-            <form action="./+octeam" method="post">
-	      <input type="text" name="roll" autofocus maxlength=9 required placeholder='Enter Roll Number' style='height:20px;width:200px;font-size:20px;margin-top:80px'/></br></br></br>
-<input type="submit" name="check_existing" style="font-size:18px" value="Check this Roll">
-</form>
-
-</div>
-</center>	   
-FORM;
-
-if(isset($_POST['check_existing'])){
-$roll=$_POST['roll'];
-return $ocDuty.check_existing($moduleComponentId,$roll);
-
-
-
+  global $urlRequestRoot, $moduleFolder, $cmsFolder,$templateFolder,$sourceFolder,$STARTSCRIPTS;
+  $mcId = $this->moduleComponentId;
+  require_once($sourceFolder."/".$moduleFolder."/oc/oc_common.php");
+  require_once($sourceFolder."/".$moduleFolder."/oc/oc_form.php");
+  if((isset($_POST['passwordChangeOption']))) {
+    $userChecked=$_POST['changeUserDetail'];
+    if(empty($userChecked)) {
+      displayerror("InValid Selection");
+    }
+    else {
+      if($_POST['passwordChangeOption'] == 'sollamatten') {
+	unset($_SESSION['availability_S']);
+	unset($_SESSION['availability_M']);
+	unset($_SESSION['availability_L']);
+	unset($_SESSION['availability_XL']);
+	unset($_SESSION['availability_XXL']);
+	unset($_SESSION['availability_food_coupon']);
+	unset($_SESSION['availability_extra']);
+	for($i=0;$i<count($userChecked);$i++) {
+	    if($userChecked[$i] == 'S' || $userChecked[$i] == 'M' || $userChecked[$i] == 'L' ||
+             $userChecked[$i] == 'XL' || $userChecked[$i] == 'XXL' ||$userChecked[$i] == 'food_coupon' || $userChecked[$i] == 'extra') {
+	       $_SESSION['availability_'.$userChecked[$i]]=1;
+	  }     
+	}
+      }
+      else {
+	displayerror("Wrong Password");
+      }
+    }
   }
-return $ocDuty;
+  if(isset($_SESSION['availability_S'])) displayinfo("Small Available");
+  if(isset($_SESSION['availability_M'])) displayinfo("Medium Available");
+  if(isset($_SESSION['availability_L'])) displayinfo("Large Available");
+  if(isset($_SESSION['availability_XL'])) displayinfo("XL Available");
+  if(isset($_SESSION['availability_XXL'])) displayinfo("XXL Available");
+  if(isset($_SESSION['availability_food_coupon'])) displayinfo("Food Coupon Available");
+  if(isset($_SESSION['availability_extra'])) displayinfo("Extra Available");
+
+
+  if(isset($_POST['roll'])){
+    $roll=escape($_POST['roll']);
+    checkExisting($mcId,$roll,0);
+    $form =<<<FORM
+      <form id="submitFormLatest" action="./+octeam" onsubmit="return submitLatest()" method="post">
+        <input type="hidden" id="rolledValue" name="roll_latest_submit" value="{$roll}" />
+        <input type="submit" />
+      </form>
+FORM;
+    echo $form;
+    echo final_submit();
+    exit();
+  }
+  if(isset($_POST['roll_latest_submit'])){
+    $roll=escape($_POST['roll_latest_submit']);
+    checkExisting($mcId,$roll,1);
+    exit();    
+  }
+  $ocDuty=handleDistribution();
+  return $ocDuty;
 }
  
 public function actionOchead() {
-    $page_moduleComponentId=$this->moduleComponentId;
-    $userId = $this->userId;
-    global $urlRequestRoot, $moduleFolder, $cmsFolder,$templateFolder,$sourceFolder,$STARTSCRIPTS;
-    require_once($sourceFolder."/upload.lib.php");
-    require_once($sourceFolder."/".$moduleFolder."/qaos1/excel.php");
-    require_once($sourceFolder."/".$moduleFolder."/oc/oc_common.php");
-     if(isset($_POST['downloadFormatExcel'])) {
-        displayOCDownload();
-     }
-    if(isset($_FILES['fileUploadField']['name'])) {
-      $date = date_create();
-
-      $timeStamp = date_timestamp_get($date);
-      $tempVar=$sourceFolder."/uploads/temp/".$timeStamp.$_FILES['fileUploadField']['name'][0];
-      move_uploaded_file($_FILES["fileUploadField"]["tmp_name"][0],$tempVar);
-      $excelData = readExcelSheet($tempVar);
-      $success = 1;
-       for($i=2;$i<=count($excelData);$i++)  {
-            $query="INSERT INTO `oc_valid_emails` (`page_moduleComponentId`,`oc_name`,`oc_valid_email`) VALUES($page_moduleComponentId,'{$excelData[$i][1]}','{$excelData[$i][2]}')";
-        mysql_query($query);
-       
-       }
+  global $urlRequestRoot, $moduleFolder, $cmsFolder,$templateFolder,$sourceFolder,$STARTSCRIPTS;
+  require_once($sourceFolder."/upload.lib.php");
+  require_once($sourceFolder."/".$moduleFolder."/qaos1/excel.php");
+  require_once($sourceFolder."/".$moduleFolder."/oc/oc_common.php");
+  $mcId=$this->moduleComponentId;
+  $userId = $this->userId;
+  if(isset($_POST['downloadFormatExcel'])) {
+    displayOCDownload();
+  }
+  if(isset($_FILES['fileUploadField']['name'])) {
+    $date = date_create();
+    $timeStamp = date_timestamp_get($date);
+    $tempVar=$sourceFolder."/uploads/temp/".$timeStamp.$_FILES['fileUploadField']['name'][0];
+    move_uploaded_file($_FILES["fileUploadField"]["tmp_name"][0],$tempVar);
+    $excelData = readExcelSheet($tempVar);
+    $success = 1;
+    for($i=2;$i<=count($excelData);$i++)  {
+      $query="INSERT IGNORE INTO `oc_valid_emails` (`page_moduleComponentId`,`oc_name`,`oc_valid_email`) 
+                                            VALUES ($mcId,'{$excelData[$i][1]}','{$excelData[$i][2]}')";
+      mysql_query($query) or displayerror(mysql_error());
     }
-   $retOcHead ="";
-   $uploadValidEmail=getFileUploadForm($this->moduleComponentId,"oc",'./+ochead',UPLOAD_SIZE_LIMIT,1);echo '</br>';		 
-$retOcHead .=<<<FORM
-         <form action="./+ochead" method="post">
-	      <input type="submit" name="downloadFormatExcel" value="Download Event Sample Format"/>
-	   </form>
+  }
+  $retOcHead ="";
+  $uploadValidEmail=getFileUploadForm($mcId,"oc",'./+ochead',UPLOAD_SIZE_LIMIT,1);		 
+  $retOcHead .=<<<FORM
+    <form action="./+ochead" method="post">
+      <input type="submit" name="downloadFormatExcel" value="Download Event Sample Format"/>
+    </form>
 FORM;
-	$retOcHead.=$uploadValidEmail;
-    
- $displayTags=<<<TAG
-	<table>
-         <tr>
-           <td><a href="./+ochead&subaction=view_whitelist_users"> <div>View Whitelist Registrants</div></a></td>
-           <td><a href="./+ochead&subaction=view_registered_users"><div>Registred Users</div></a></td>
-           <td><a href="./+ochead&subaction=add_whitelist_email"><div>Add Whitelist Email</div></a></td>
-           <td><a href="./+ochead&subaction=availability"><div>Check Availability</div></a></td>
-           <td><a href="./+ochead&subaction=reg_status"><div>Current Registration Status</div></a></td>
-           
-         </tr>
-        </table>
-                                    
+  $retOcHead.=$uploadValidEmail;
+  $displayTags=<<<TAG
+    <table>
+      <tr>
+        <td><a href="./+ochead&subaction=view_whitelist_users"> <div>View Whitelist Registrants</div></a></td>
+        <td><a href="./+ochead&subaction=view_registered_users"><div>Registred Users</div></a></td>
+        <td><a href="./+ochead&subaction=add_whitelist_email"><div>Add Whitelist Email</div></a></td>
+        <td><a href="./+ochead&subaction=availability"><div>Check Availability</div></a></td>
+        <td><a href="./+ochead&subaction=reg_status"><div>Current Registration Status</div></a></td>
+      </tr>
+    </table>
 TAG;
-if(isset($_GET['subaction'])&&$_GET['subaction'] == 'view_registered_users')   {
- return $retOcHead.$displayTags.view_registered_users($moduleComponentId);
-    }
-if(isset($_GET['subaction'])&&$_GET['subaction']=='view_whitelist_users'){
-
-return $retOcHead.$displayTags.view_whitelist_emails($moduleComponentId);
-
-}
-if(isset($_GET['subaction'])&&$_GET['subaction']=='add_whitelist_email'){
-
-return $retOcHead.$displayTags.add_whitelist_email($moduleComponentId);
-}
-if(isset($_GET['subaction'])&&$_GET['subaction']=='availability'){
-
-return $retOcHead.$displayTags.availability($moduleComponentId);
-}
-
-if(isset($_GET['subaction'])&&$_GET['subaction']=='reg_status'){
-
-return $retOcHead.$displayTags.reg_status($moduleComponentId);
+  if(isset($_GET['subaction'])&&$_GET['subaction'] == 'view_registered_users')   {
+    return $retOcHead.$displayTags.view_registered_users($mcId);
+  }
+  if(isset($_GET['subaction'])&&$_GET['subaction']=='view_whitelist_users'){
+    return $retOcHead.$displayTags.view_whitelist_emails($mcId);
+  }
+  if(isset($_GET['subaction'])&&$_GET['subaction']=='add_whitelist_email'){
+    return $retOcHead.$displayTags.add_whitelist_email($mcId);
+  }
+  if(isset($_GET['subaction'])&&$_GET['subaction']=='availability'){
+    return $retOcHead.$displayTags.availability($mcId);
+  }
+  if(isset($_GET['subaction'])&&$_GET['subaction']=='reg_status'){
+    return $retOcHead.$displayTags.reg_status($mcId);
+  }
+  return $retOcHead.$displayTags.view_registered_users($mcId);   
 }
 
-  
-return $retOcHead.$displayTags;   
+public static function getFileAccessPermission($pageId,$moduleComponentId,$userId, $fileName)  {
+  return getPermissions($userId, $pageId, "view");
 }
 
-       public static function getFileAccessPermission($pageId,$moduleComponentId,$userId, $fileName) 
-       	       {
-			return getPermissions($userId, $pageId, "view");
-	      	}
-
-	 public static function getUploadableFileProperties(&$fileTypesArray,&$maxFileSizeInBytes) 
-	 	{
-			$fileTypesArray = array('jpg','jpeg','png','doc','pdf','gif','bmp','css','js','html','xml','ods','odt','oft','pps','ppt','tex','tiff','txt','chm','mp3','mp2','wave','wav','mpg','ogg','mpeg','wmv','wma','wmf','rm','avi','gzip','gz','rar','bmp','psd','bz2','tar','zip','swf','fla','flv','eps','xcf','xls','exe','7z');
-		     	$maxFileSizeInBytes = 30*1024*1024;
-		}
+public static function getUploadableFileProperties(&$fileTypesArray,&$maxFileSizeInBytes)  {
+  $fileTypesArray = array('jpg','jpeg','png','doc','pdf','gif','bmp','css','js','html','xml','ods','odt','oft','pps','ppt','tex','tiff','txt','chm','mp3','mp2','wave','wav','mpg','ogg','mpeg','wmv','wma','wmf','rm','avi','gzip','gz','rar','bmp','psd','bz2','tar','zip','swf','fla','flv','eps','xcf','xls','exe','7z');
+  $maxFileSizeInBytes = 30*1024*1024;
+}
 
 public function deleteModule($moduleComponentId) {
-  
   return true;
-  }
-  public function createModule($moduleComponentId) {
-    ///No initialization
-  }
-  public function copyModule($moduleComponentId, $newId) {
-    return true;
-  }
+}
+public function createModule($moduleComponentId) {
+  ///No initialization
+}
+public function copyModule($moduleComponentId, $newId) {
+  return true;
+}
 }
 
