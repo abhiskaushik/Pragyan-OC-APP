@@ -14,5 +14,5 @@ The App deals about:
 5.Oc-Team works during the distribution process, where they scan the I-card of students and get the roll and then check if he/she is a whitelist user or not. If whitelist registrants  get their things.
     To use this app one has to install pragyan-cms and then include the file oc.lib.php and the folder oc  in the cms/module folder and then one can use it.
     Thanks.
-    Developers: Abhishek Kaushik(2nd yr, Delta Nit-Trichy)
-                Shriram Venkatraman (4th yr,Delta Nit-Trichy)
+    Developers: <b>Abhishek Kaushik(2nd yr, Delta Nit-Trichy)</b>
+               <b> Shriram Venkatraman (4th yr,Delta Nit-Trichy) </b>
